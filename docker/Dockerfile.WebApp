@@ -1,0 +1,14 @@
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
+
+WORKDIR /app
+EXPOSE 80
+EXPOSE 443
+
+
+ARG SOURCE_FOLDER
+COPY ${SOURCE_FOLDER} . 
+
+ENTRYPOINT ["dotnet", "AssetsDemo.Frontend.WebApp.dll"]
+
+ENV ASPNETCORE_HTTP_PORTS=80
+ENV DOTNET_SYSTEM_NET_HTTP_USESSL=false
