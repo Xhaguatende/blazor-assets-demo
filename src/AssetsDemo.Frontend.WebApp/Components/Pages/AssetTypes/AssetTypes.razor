@@ -1,0 +1,57 @@
+﻿@page "/asset-types"
+
+@inject IAssetTypeServices AssetTypeServices
+
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<PageTitle>Asset Types</PageTitle>
+
+<h3>Asset Types</h3>
+
+<div class="mt-2 mb-2">
+    <a class="btn btn-primary" role="button" href="/new-asset-type">New Asset Type</a>
+</div>
+
+@if (_assetTypes == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var assetType in _assetTypes)
+            {
+                <tr>
+                    <td>@assetType.Name</td>
+                    <td>@assetType.Description</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<AssetTypeModel>? _assetTypes = [];
+
+    private readonly CancellationTokenSource _cts = new();
+
+    public void Dispose()
+    {
+        _cts.Cancel();
+        _cts.Dispose();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _assetTypes = await AssetTypeServices.GetAllAsync(_cts.Token);
+    }
+     
+}

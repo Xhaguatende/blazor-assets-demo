@@ -1,0 +1,98 @@
+﻿@page "/new-asset-type"
+@page "/asset-type/{id:guid}"
+
+@inject IAssetTypeServices AssetTypeServices
+@inject NavigationManager NavigationManager
+
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<PageTitle>New Asset Type</PageTitle>
+<h3>New Asset Type</h3>
+
+@if (AssetTypeModel == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <EditForm Model="@AssetTypeModel" FormName="editAssetType" OnValidSubmit="HandleValidAsync">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label for="name" class="form-label">Name</label>
+            <InputText id="name" class="form-control" @bind-Value="AssetTypeModel.Name" />
+            <ValidationMessage For="@(() => AssetTypeModel.Name)" />
+        </div>
+
+        <div class="mb-3">
+            <label for="description" class="form-label">Description</label>
+            <InputTextArea id="description" class="form-control" @bind-Value="AssetTypeModel.Description" />
+            <ValidationMessage For="@(() => AssetTypeModel.Description)" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a class="btn btn-secondary" role="button" href="/asset-types">Cancel</a>
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public Guid? Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private AssetTypeModel? AssetTypeModel { get; set; }
+
+    private string _title = string.Empty;
+
+    private readonly CancellationTokenSource _cts = new();
+
+    public void Dispose()
+    {
+        _cts.Cancel();
+        _cts.Dispose();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (AssetTypeModel is not null)
+        {
+            return;
+        }
+
+        if (Id.HasValue)
+        {
+            var asset = await AssetTypeServices.GetByIdAsync(Id.Value, _cts.Token);
+
+            _title = $"Edit Asset Type: {asset.Name}";
+
+            AssetTypeModel = new AssetTypeModel
+            {
+                Id = asset.Id,
+                Name = asset.Name,
+                Description = asset.Description
+            };
+        }
+        else
+        {
+            AssetTypeModel = new AssetTypeModel();
+
+            _title = "New Asset Type";
+        }
+    }
+    private async Task HandleValidAsync()
+    {
+        ArgumentNullException.ThrowIfNull(AssetTypeModel);
+
+        if (AssetTypeModel.Id is null)
+        {
+            await AssetTypeServices.CreateAsync(AssetTypeModel, _cts.Token);
+        }
+        else
+        {
+            await AssetTypeServices.UpdateAsync(AssetTypeModel, _cts.Token);
+        }
+
+        NavigationManager.NavigateTo("/asset-types");
+    }
+}

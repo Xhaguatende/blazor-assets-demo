@@ -17,10 +17,25 @@ public class AssetTypeServices : ServiceBase, IAssetTypeServices
     {
     }
 
+    public async Task CreateAsync(AssetTypeModel assetTypeModel, CancellationToken cancellationToken = default)
+    {
+        await PostAsync(string.Empty, assetTypeModel, cancellationToken);
+    }
+
     public async Task<List<AssetTypeModel>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         var assets = await GetAsync<List<AssetTypeModel>>(string.Empty, cancellationToken);
 
         return assets ?? [];
+    }
+
+    public async Task<AssetTypeModel> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await GetAsync<AssetTypeModel>($"{id}", cancellationToken) ?? default!;
+    }
+
+    public async Task UpdateAsync(AssetTypeModel assetTypeModel, CancellationToken cancellationToken = default)
+    {
+        await PutAsync(string.Empty, assetTypeModel, cancellationToken);
     }
 }

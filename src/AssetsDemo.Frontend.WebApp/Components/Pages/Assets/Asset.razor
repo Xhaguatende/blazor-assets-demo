@@ -3,7 +3,6 @@
 
 @inject IAssetServices AssetServices
 @inject IAssetTypeServices AssetTypeServices
-
 @inject NavigationManager NavigationManager
 
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
@@ -62,6 +61,14 @@ else
 
     private string _title = string.Empty;
 
+    private readonly CancellationTokenSource _cts = new();
+
+    public void Dispose()
+    {
+        _cts.Cancel();
+        _cts.Dispose();
+    }
+
     protected override async Task OnParametersSetAsync()
     {
         if (AssetModel is not null)
@@ -71,7 +78,7 @@ else
 
         if (Id.HasValue)
         {
-            var asset = await AssetServices.GetByIdAsync(Id.Value);
+            var asset = await AssetServices.GetByIdAsync(Id.Value, _cts.Token);
 
             _title = $"Edit Asset: {asset.Name}";
 
@@ -97,7 +104,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        _assetTypes = await AssetTypeServices.GetAllAsync();
+        _assetTypes = await AssetTypeServices.GetAllAsync(_cts.Token);
         _assetTypes.Insert(0, new AssetTypeModel { Id = null, Name = "Select Asset Type..." });
     }
 
@@ -107,11 +114,11 @@ else
 
         if (AssetModel.Id is null)
         {
-            await AssetServices.CreateAsync(AssetModel);
+            await AssetServices.CreateAsync(AssetModel, _cts.Token);
         }
         else
         {
-            await AssetServices.UpdateAsync(AssetModel);
+            await AssetServices.UpdateAsync(AssetModel, _cts.Token);
         }
 
         NavigationManager.NavigateTo("/assets");

@@ -50,9 +50,17 @@ else
 @code {
     private List<AssetRowModel>? _assets = [];
 
+    private readonly CancellationTokenSource _cts = new();
+
+    public void Dispose()
+    {
+        _cts.Cancel();
+        _cts.Dispose();
+    }
+
     protected override async Task OnInitializedAsync()
     {
-        _assets = await AssetServices.GetAllAsync();
+        _assets = await AssetServices.GetAllAsync(_cts.Token);
     }
 
     private static string AssetUrl(Guid id) => $"/asset/{id}";
